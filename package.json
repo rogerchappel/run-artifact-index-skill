@@ -38,7 +38,9 @@
     "SKILL.md",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md"
   ],
   "bugs": {
     "url": "https://github.com/rogerchappel/run-artifact-index-skill/issues"
