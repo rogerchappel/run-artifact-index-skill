@@ -24,6 +24,9 @@ export function renderMarkdown(index) {
       lines.push(`  - command: \`${artifact.command}\``);
       lines.push(`  - result: ${artifact.result}`);
     }
+    if (artifact.sha256) {
+      lines.push(`  - sha256: \`${artifact.sha256}\``);
+    }
   }
 
   return `${lines.join("\n")}\n`;

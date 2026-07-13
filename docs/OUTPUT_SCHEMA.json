@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunArtifactIndex",
+  "type": "object",
+  "required": ["root", "artifactCount", "artifacts", "categories"],
+  "properties": {
+    "root": { "type": "string" },
+    "artifactCount": { "type": "number" },
+    "categories": { "type": "object", "additionalProperties": { "type": "number" } },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "displayPath", "category", "bytes"],
+        "properties": {
+          "path": { "type": "string" },
+          "displayPath": { "type": "string" },
+          "category": { "type": "string" },
+          "bytes": { "type": "number" },
+          "command": { "type": "string" },
+          "result": { "type": "string" },
+          "sha256": { "type": "string" }
+        }
+      }
+    }
+  }
+}

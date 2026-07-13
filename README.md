@@ -18,10 +18,29 @@ run-artifact-index [root] \
   --format json|markdown \
   --output artifact-index.md \
   --include-hidden \
+  --category report \
+  --checksum \
+  --max-depth 2 \
   --exclude tmp
 ```
 
 The command scans files under `root`, classifies each artifact, optionally joins command-ledger evidence, and emits JSON or markdown.
+
+## Ledger Format
+
+```json
+{
+  "commands": [
+    {
+      "command": "npm test",
+      "result": "pass",
+      "artifacts": ["reports/summary.md"]
+    }
+  ]
+}
+```
+
+Ledger artifact paths are relative to the scanned root.
 
 ## Categories
 

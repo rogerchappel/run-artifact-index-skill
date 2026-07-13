@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 
 const DEFAULT_EXCLUDES = ["node_modules", ".git", "dist", "coverage"];
 
@@ -10,24 +11,26 @@ export function scanArtifacts(root, options = {}) {
   const ledger = loadLedger(options.ledger);
   const artifacts = [];
 
-  walk(absoluteRoot, absoluteRoot, { includeHidden, excludes, artifacts });
+  walk(absoluteRoot, absoluteRoot, { includeHidden, excludes, artifacts, maxDepth: options.maxDepth ?? Infinity });
 
   return {
     root: redactHome(absoluteRoot),
     artifactCount: artifacts.length,
     artifacts: artifacts
+      .filter((artifact) => !options.category || artifact.category === options.category)
+      .map((artifact) => maybeAddChecksum(artifact, absoluteRoot, options))
       .map((artifact) => attachLedger(artifact, ledger))
       .sort((a, b) => a.path.localeCompare(b.path)),
     categories: summarizeCategories(artifacts)
   };
 }
 
-function walk(root, current, context) {
+function walk(root, current, context, depth = 0) {
   for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
     if (shouldSkip(entry.name, context)) continue;
     const absolute = path.join(current, entry.name);
     if (entry.isDirectory()) {
-      walk(root, absolute, context);
+      if (depth < context.maxDepth) walk(root, absolute, context, depth + 1);
       continue;
     }
     if (!entry.isFile()) continue;
@@ -40,6 +43,13 @@ function walk(root, current, context) {
       bytes: stat.size
     });
   }
+}
+
+function maybeAddChecksum(artifact, root, options) {
+  if (!options.checksum) return artifact;
+  const absolute = path.join(root, artifact.path);
+  const sha256 = crypto.createHash("sha256").update(fs.readFileSync(absolute)).digest("hex");
+  return { ...artifact, sha256 };
 }
 
 function shouldSkip(name, { includeHidden, excludes }) {
