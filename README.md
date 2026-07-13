@@ -6,9 +6,13 @@
 
 ```bash
 npm install
+npm test
 npm run smoke
+npm run release:check
 node ./bin/run-artifact-index.js fixtures/sample-run --ledger fixtures/sample-run/ledger.json --format json
 ```
+
+`npm run release:check` runs the test suite, syntax/build checks, CLI fixture smoke, and npm pack smoke. Use it before opening a release PR or publishing a package candidate.
 
 ## CLI
 
@@ -25,6 +29,10 @@ run-artifact-index [root] \
 ```
 
 The command scans files under `root`, classifies each artifact, optionally joins command-ledger evidence, and emits JSON or markdown.
+
+## Package Contents
+
+The npm package intentionally ships the CLI, source modules, docs, sample fixtures, changelog, license, and skill file. The fixture files are included so consumers can run the quickstart and release smoke checks from the installed package.
 
 ## Ledger Format
 
