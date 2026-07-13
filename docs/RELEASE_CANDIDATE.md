@@ -6,6 +6,7 @@
 - `npm run check`
 - `npm run build`
 - `npm run smoke`
+- `node ./bin/run-artifact-index.js fixtures/sample-run --category package --checksum --format json`
 - `bash scripts/validate.sh`
 
 ## Classification
