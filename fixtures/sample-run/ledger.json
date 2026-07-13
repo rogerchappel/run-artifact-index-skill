@@ -1,0 +1,14 @@
+{
+  "commands": [
+    {
+      "command": "npm test",
+      "result": "pass",
+      "artifacts": ["reports/summary.md", "logs/build.log"]
+    },
+    {
+      "command": "npm pack --dry-run",
+      "result": "pass",
+      "artifacts": ["packages/output.tgz"]
+    }
+  ]
+}
