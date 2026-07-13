@@ -6,6 +6,7 @@ const required = [
   "LICENSE",
   "SECURITY.md",
   "CHANGELOG.md",
+  "CONTRIBUTING.md",
   "docs/PRD.md",
   "docs/TASKS.md",
   "docs/ORCHESTRATION.md",
