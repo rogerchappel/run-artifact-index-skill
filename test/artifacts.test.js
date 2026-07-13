@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { test } from "node:test";
 import { classifyArtifact, redactHome, scanArtifacts } from "../src/artifacts.js";
 
@@ -41,6 +42,13 @@ test("can add sha256 checksums", () => {
 test("honors max depth", () => {
   const index = scanArtifacts("fixtures/sample-run", { maxDepth: 0 });
   assert.equal(index.artifacts.some((artifact) => artifact.path === "reports/summary.md"), false);
+});
+
+test("matches expected package-only fixture", () => {
+  const expected = JSON.parse(fs.readFileSync("fixtures/expected-package-only.json", "utf8"));
+  const index = scanArtifacts("fixtures/sample-run", { category: expected.category });
+  assert.equal(index.artifacts.length, expected.artifactCount);
+  assert.deepEqual(index.artifacts.map((artifact) => artifact.path), expected.paths);
 });
 
 test("redacts home directory prefixes", () => {
