@@ -2,20 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [main, "release-candidate/**", "release-readiness/**"]
-  pull_request:
     branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
-  verify:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: "20"
-      - run: npm test
-      - run: npm run check
-      - run: npm run build
-      - run: npm run smoke
-      - run: bash scripts/validate.sh
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run release checks
+        run: npm run release:check
