@@ -27,6 +27,9 @@ export function parseArgs(argv) {
     else if (arg === "--format") options.format = readValue(argv, ++index, "--format");
     else if (arg === "--ledger") options.ledger = readValue(argv, ++index, "--ledger");
     else if (arg === "--output") options.output = readValue(argv, ++index, "--output");
+    else if (arg === "--category") options.category = readValue(argv, ++index, "--category");
+    else if (arg === "--checksum") options.checksum = true;
+    else if (arg === "--max-depth") options.maxDepth = Number(readValue(argv, ++index, "--max-depth"));
     else if (arg === "--exclude") options.exclude.push(readValue(argv, ++index, "--exclude"));
     else if (arg.startsWith("--")) throw new Error(`Unknown option: ${arg}`);
     else options.root = arg;

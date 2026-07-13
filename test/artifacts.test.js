@@ -28,6 +28,21 @@ test("can include hidden paths explicitly", () => {
   assert.ok(hidden);
 });
 
+test("filters by category", () => {
+  const index = scanArtifacts("fixtures/sample-run", { category: "package" });
+  assert.deepEqual(index.artifacts.map((artifact) => artifact.category), ["package"]);
+});
+
+test("can add sha256 checksums", () => {
+  const index = scanArtifacts("fixtures/sample-run", { category: "report", checksum: true });
+  assert.match(index.artifacts[0].sha256, /^[a-f0-9]{64}$/);
+});
+
+test("honors max depth", () => {
+  const index = scanArtifacts("fixtures/sample-run", { maxDepth: 0 });
+  assert.equal(index.artifacts.some((artifact) => artifact.path === "reports/summary.md"), false);
+});
+
 test("redacts home directory prefixes", () => {
   const redacted = redactHome(`${process.env.HOME}/workspace/file.txt`);
   assert.equal(redacted, "~/workspace/file.txt");
