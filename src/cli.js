@@ -29,7 +29,7 @@ export function parseArgs(argv) {
     else if (arg === "--output") options.output = readValue(argv, ++index, "--output");
     else if (arg === "--category") options.category = readValue(argv, ++index, "--category");
     else if (arg === "--checksum") options.checksum = true;
-    else if (arg === "--max-depth") options.maxDepth = Number(readValue(argv, ++index, "--max-depth"));
+    else if (arg === "--max-depth") options.maxDepth = parseMaxDepth(readValue(argv, ++index, "--max-depth"));
     else if (arg === "--exclude") options.exclude.push(readValue(argv, ++index, "--exclude"));
     else if (arg.startsWith("--")) throw new Error(`Unknown option: ${arg}`);
     else options.root = arg;
@@ -38,6 +38,14 @@ export function parseArgs(argv) {
     throw new Error("--format must be json or markdown");
   }
   return options;
+}
+
+function parseMaxDepth(value) {
+  const maxDepth = Number(value);
+  if (!Number.isFinite(maxDepth) || !Number.isInteger(maxDepth) || maxDepth < 0) {
+    throw new Error("--max-depth must be a finite non-negative integer");
+  }
+  return maxDepth;
 }
 
 function readValue(argv, index, name) {
