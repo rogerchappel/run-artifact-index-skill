@@ -5,8 +5,15 @@
   "required": ["root", "artifactCount", "artifacts", "categories"],
   "properties": {
     "root": { "type": "string" },
-    "artifactCount": { "type": "number" },
-    "categories": { "type": "object", "additionalProperties": { "type": "number" } },
+    "artifactCount": {
+      "type": "number",
+      "description": "Number of artifacts returned after applying filters."
+    },
+    "categories": {
+      "type": "object",
+      "description": "Category counts for the artifacts returned after applying filters.",
+      "additionalProperties": { "type": "number" }
+    },
     "artifacts": {
       "type": "array",
       "items": {
