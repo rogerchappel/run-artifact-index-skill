@@ -13,15 +13,17 @@ export function scanArtifacts(root, options = {}) {
 
   walk(absoluteRoot, absoluteRoot, { includeHidden, excludes, artifacts, maxDepth: options.maxDepth ?? Infinity });
 
-  return {
-    root: redactHome(absoluteRoot),
-    artifactCount: artifacts.length,
-    artifacts: artifacts
+  const selectedArtifacts = artifacts
       .filter((artifact) => !options.category || artifact.category === options.category)
       .map((artifact) => maybeAddChecksum(artifact, absoluteRoot, options))
       .map((artifact) => attachLedger(artifact, ledger))
-      .sort((a, b) => a.path.localeCompare(b.path)),
-    categories: summarizeCategories(artifacts)
+      .sort((a, b) => a.path.localeCompare(b.path));
+
+  return {
+    root: redactHome(absoluteRoot),
+    artifactCount: selectedArtifacts.length,
+    artifacts: selectedArtifacts,
+    categories: summarizeCategories(selectedArtifacts)
   };
 }
 
