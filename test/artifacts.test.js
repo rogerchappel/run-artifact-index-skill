@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
 import { classifyArtifact, redactHome, scanArtifacts } from "../src/artifacts.js";
+import { renderJson, renderMarkdown } from "../src/render.js";
 
 test("classifies common artifact paths", () => {
   assert.equal(classifyArtifact("reports/summary.md"), "report");
@@ -32,6 +33,20 @@ test("can include hidden paths explicitly", () => {
 test("filters by category", () => {
   const index = scanArtifacts("fixtures/sample-run", { category: "package" });
   assert.deepEqual(index.artifacts.map((artifact) => artifact.category), ["package"]);
+  assert.equal(index.artifactCount, 1);
+  assert.deepEqual(index.categories, { package: 1 });
+});
+
+test("renders summaries for only the filtered artifacts", () => {
+  const index = scanArtifacts("fixtures/sample-run", { category: "package" });
+  const json = JSON.parse(renderJson(index));
+  const markdown = renderMarkdown(index);
+
+  assert.equal(json.artifactCount, json.artifacts.length);
+  assert.deepEqual(json.categories, { package: 1 });
+  assert.match(markdown, /Artifacts: 1/);
+  assert.match(markdown, /- package: 1/);
+  assert.doesNotMatch(markdown, /- report:/);
 });
 
 test("can add sha256 checksums", () => {
