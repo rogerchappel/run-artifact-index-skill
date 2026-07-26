@@ -96,5 +96,7 @@ function summarizeCategories(artifacts) {
 export function redactHome(value) {
   const home = process.env.HOME;
   if (!home) return value;
-  return value.replaceAll(home, "~");
+  if (value === home) return "~";
+  if (value.startsWith(`${home}${path.sep}`)) return `~${value.slice(home.length)}`;
+  return value;
 }
