@@ -64,7 +64,7 @@ Ledger artifact paths are relative to the scanned root.
 - Reads local files only.
 - Does not delete, upload, or call external services.
 - Skips dot-directories unless `--include-hidden` is set.
-- Redacts the local home directory prefix in rendered paths.
+- Redacts an exact local home directory or its path prefix in rendered paths, without changing similar or embedded path segments.
 
 ## Limitations
 
