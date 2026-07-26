@@ -66,7 +66,17 @@ test("matches expected package-only fixture", () => {
   assert.deepEqual(index.artifacts.map((artifact) => artifact.path), expected.paths);
 });
 
-test("redacts home directory prefixes", () => {
-  const redacted = redactHome(`${process.env.HOME}/workspace/file.txt`);
-  assert.equal(redacted, "~/workspace/file.txt");
+test("redacts only the home directory and its descendants", () => {
+  const originalHome = process.env.HOME;
+  process.env.HOME = "/Users/al";
+
+  try {
+    assert.equal(redactHome("/Users/al"), "~");
+    assert.equal(redactHome("/Users/al/workspace/file.txt"), "~/workspace/file.txt");
+    assert.equal(redactHome("/Users/alice/workspace/file.txt"), "/Users/alice/workspace/file.txt");
+    assert.equal(redactHome("/backup/Users/al/workspace/file.txt"), "/backup/Users/al/workspace/file.txt");
+  } finally {
+    if (originalHome === undefined) delete process.env.HOME;
+    else process.env.HOME = originalHome;
+  }
 });
