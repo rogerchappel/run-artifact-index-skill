@@ -71,9 +71,53 @@ export function classifyArtifact(relativePath) {
 
 function loadLedger(ledgerPath) {
   if (!ledgerPath) return new Map();
-  const parsed = JSON.parse(fs.readFileSync(path.resolve(ledgerPath), "utf8"));
-  const entries = Array.isArray(parsed) ? parsed : parsed.commands ?? [];
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(path.resolve(ledgerPath), "utf8"));
+  } catch (error) {
+    if (error instanceof SyntaxError) throw new Error("Ledger must contain valid JSON");
+    throw error;
+  }
+
+  const entries = ledgerEntries(parsed);
   return new Map(entries.flatMap((entry) => (entry.artifacts ?? []).map((artifact) => [artifact, entry])));
+}
+
+function ledgerEntries(parsed) {
+  if (!Array.isArray(parsed) && !isRecord(parsed)) {
+    throw new Error('Ledger must be an array or an object with a "commands" array');
+  }
+
+  const entries = Array.isArray(parsed) ? parsed : parsed.commands;
+  if (!Array.isArray(entries)) {
+    throw new Error('Ledger must be an array or an object with a "commands" array');
+  }
+
+  entries.forEach((entry, commandIndex) => {
+    if (!isRecord(entry)) {
+      throw new Error(`Ledger command at index ${commandIndex} must be an object`);
+    }
+    if (typeof entry.command !== "string" || entry.command.length === 0) {
+      throw new Error(`Ledger command at index ${commandIndex} must have a non-empty "command" string`);
+    }
+    if (!Array.isArray(entry.artifacts)) {
+      throw new Error(`Ledger command at index ${commandIndex} must have an "artifacts" array`);
+    }
+    if (entry.result !== undefined && typeof entry.result !== "string") {
+      throw new Error(`Ledger command at index ${commandIndex} must have a string "result" when provided`);
+    }
+    entry.artifacts.forEach((artifact, artifactIndex) => {
+      if (typeof artifact !== "string" || artifact.length === 0) {
+        throw new Error(`Ledger artifact at commands[${commandIndex}].artifacts[${artifactIndex}] must be a non-empty string`);
+      }
+    });
+  });
+
+  return entries;
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function attachLedger(artifact, ledger) {
