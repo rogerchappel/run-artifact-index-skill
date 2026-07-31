@@ -28,7 +28,7 @@ run-artifact-index [root] \
   --exclude tmp
 ```
 
-The command scans files under `root`, classifies each artifact, optionally joins command-ledger evidence, and emits JSON or markdown.
+The command accepts zero or one positional `root` (default: the current directory), scans files under it, classifies each artifact, optionally joins command-ledger evidence, and emits JSON or markdown. Extra positional arguments are rejected instead of being treated as replacement roots.
 
 ## Package Contents
 
@@ -49,6 +49,8 @@ The npm package intentionally ships the CLI, source modules, docs, sample fixtur
 ```
 
 Ledger artifact paths are relative to the scanned root.
+
+The ledger must be either the object form above or the `commands` array itself. Each command entry must be an object with a non-empty string `command` and an `artifacts` array containing non-empty relative-path strings. The optional `result` must be a string. Invalid JSON or schema shapes are rejected before the scan begins.
 
 ## Categories
 

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import { classifyArtifact, redactHome, scanArtifacts } from "../src/artifacts.js";
 import { renderJson, renderMarkdown } from "../src/render.js";
@@ -18,6 +20,41 @@ test("scans fixtures and joins command ledger", () => {
   assert.equal(report.category, "report");
   assert.equal(report.command, "npm test");
   assert.equal(index.categories.report, 1);
+});
+
+test("accepts a top-level ledger array", () => {
+  withLedger([
+    { command: "npm test", artifacts: ["reports/summary.md"] }
+  ], (ledger) => {
+    const index = scanArtifacts("fixtures/sample-run", { ledger });
+    assert.equal(index.artifacts.find((artifact) => artifact.path === "reports/summary.md").command, "npm test");
+  });
+});
+
+for (const [name, ledger, message] of [
+  ["a non-array commands property", { commands: {} }, 'Ledger must be an array or an object with a "commands" array'],
+  ["an unrelated object", {}, 'Ledger must be an array or an object with a "commands" array'],
+  ["a primitive", true, 'Ledger must be an array or an object with a "commands" array'],
+  ["a non-object command", [null], "Ledger command at index 0 must be an object"],
+  ["a missing command string", [{ artifacts: [] }], 'Ledger command at index 0 must have a non-empty "command" string'],
+  ["a missing artifacts array", [{ command: "npm test" }], 'Ledger command at index 0 must have an "artifacts" array'],
+  ["a non-string result", [{ command: "npm test", result: false, artifacts: [] }], 'Ledger command at index 0 must have a string "result" when provided'],
+  ["a non-string artifact", [{ command: "npm test", artifacts: [42] }], "Ledger artifact at commands[0].artifacts[0] must be a non-empty string"]
+]) {
+  test(`rejects ${name} in a ledger`, () => {
+    withLedger(ledger, (ledgerPath) => {
+      assert.throws(() => scanArtifacts("fixtures/sample-run", { ledger: ledgerPath }), { message });
+    });
+  });
+}
+
+test("reports invalid ledger JSON deterministically", () => {
+  withLedgerText("{", (ledger) => {
+    assert.throws(
+      () => scanArtifacts("fixtures/sample-run", { ledger }),
+      { message: "Ledger must contain valid JSON" }
+    );
+  });
 });
 
 test("skips hidden paths by default", () => {
@@ -80,3 +117,18 @@ test("redacts only the home directory and its descendants", () => {
     else process.env.HOME = originalHome;
   }
 });
+
+function withLedger(value, callback) {
+  withLedgerText(JSON.stringify(value), callback);
+}
+
+function withLedgerText(contents, callback) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "run-artifact-index-ledger-"));
+  const ledger = path.join(directory, "ledger.json");
+  try {
+    fs.writeFileSync(ledger, contents);
+    callback(ledger);
+  } finally {
+    fs.rmSync(directory, { recursive: true });
+  }
+}

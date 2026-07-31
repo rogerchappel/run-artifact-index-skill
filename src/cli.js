@@ -20,6 +20,7 @@ export async function runCli(argv) {
 
 export function parseArgs(argv) {
   const options = { root: ".", format: "json", exclude: [] };
+  let hasRoot = false;
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") options.help = true;
@@ -32,7 +33,11 @@ export function parseArgs(argv) {
     else if (arg === "--max-depth") options.maxDepth = parseMaxDepth(readValue(argv, ++index, "--max-depth"));
     else if (arg === "--exclude") options.exclude.push(readValue(argv, ++index, "--exclude"));
     else if (arg.startsWith("--")) throw new Error(`Unknown option: ${arg}`);
-    else options.root = arg;
+    else {
+      if (hasRoot) throw new Error("Expected at most one root argument");
+      options.root = arg;
+      hasRoot = true;
+    }
   }
   if (!["json", "markdown"].includes(options.format)) {
     throw new Error("--format must be json or markdown");
@@ -54,5 +59,5 @@ function readValue(argv, index, name) {
 }
 
 function helpText() {
-  return `run-artifact-index [root] [--ledger ledger.json] [--format json|markdown]\n\nIndexes local agent-run artifacts without deleting or uploading anything.\n`;
+  return `run-artifact-index [root] [--ledger ledger.json] [--format json|markdown]\n\nIndexes local agent-run artifacts without deleting or uploading anything.\nAccepts at most one root. Ledgers must be a command array or {"commands": [...]}.\n`;
 }
