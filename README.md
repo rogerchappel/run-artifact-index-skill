@@ -52,6 +52,8 @@ Ledger artifact paths are relative to the scanned root.
 
 The ledger must be either the object form above or the `commands` array itself. Each command entry must be an object with a non-empty string `command` and an `artifacts` array containing non-empty relative-path strings. The optional `result` must be a string. Invalid JSON or schema shapes are rejected before the scan begins.
 
+In Markdown output, roots, artifact paths, and ledger commands are represented as code spans with a delimiter long enough to contain any backticks in the value. Ledger results remain readable text, with Markdown-significant characters escaped and continuation lines indented under the result item. JSON output preserves the original strings without Markdown escaping.
+
 ## Categories
 
 - `evidence`: logs, screenshots, or explicit evidence files.
