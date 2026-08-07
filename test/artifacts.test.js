@@ -86,6 +86,59 @@ test("renders summaries for only the filtered artifacts", () => {
   assert.doesNotMatch(markdown, /- report:/);
 });
 
+test("renders ordinary markdown output unchanged", () => {
+  const markdown = renderMarkdown({
+    root: "/tmp/run",
+    artifactCount: 1,
+    categories: { report: 1 },
+    artifacts: [{
+      path: "reports/summary.md",
+      category: "report",
+      bytes: 12,
+      command: "npm test",
+      result: "pass"
+    }]
+  });
+
+  assert.match(markdown, /Root: `\/tmp\/run`/);
+  assert.match(markdown, /- `reports\/summary\.md` - report \(12 bytes\)/);
+  assert.match(markdown, /  - command: `npm test`/);
+  assert.match(markdown, /  - result: pass/);
+});
+
+test("keeps markdown structure valid for significant ledger text", () => {
+  const markdown = renderMarkdown({
+    root: "/tmp/`run`",
+    artifactCount: 1,
+    categories: { report: 1 },
+    artifacts: [{
+      path: "reports/a`b.md",
+      category: "report",
+      bytes: 12,
+      command: "node -e `ok`",
+      result: "pass\n# not a heading\n- not a sibling\n[link](example.test)"
+    }]
+  });
+
+  assert.match(markdown, /Root: `` \/tmp\/`run` ``/);
+  assert.match(markdown, /- ``reports\/a`b\.md`` - report \(12 bytes\)/);
+  assert.match(markdown, /  - command: `` node -e `ok` ``/);
+  assert.ok(markdown.includes(
+    "  - result: pass\n    \\# not a heading\n    \\- not a sibling\n    \\[link\\]\\(example\\.test\\)"
+  ));
+});
+
+test("does not alter JSON output while escaping markdown", () => {
+  const index = {
+    root: "/tmp/run",
+    artifactCount: 1,
+    categories: { report: 1 },
+    artifacts: [{ path: "a`b.md", category: "report", bytes: 1 }]
+  };
+
+  assert.equal(renderJson(index), `${JSON.stringify(index, null, 2)}\n`);
+});
+
 test("can add sha256 checksums", () => {
   const index = scanArtifacts("fixtures/sample-run", { category: "report", checksum: true });
   assert.match(index.artifacts[0].sha256, /^[a-f0-9]{64}$/);
