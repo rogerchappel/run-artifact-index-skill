@@ -80,7 +80,42 @@ function loadLedger(ledgerPath) {
   }
 
   const entries = ledgerEntries(parsed);
-  return new Map(entries.flatMap((entry) => (entry.artifacts ?? []).map((artifact) => [artifact, entry])));
+  const ledger = new Map();
+  const claims = new Map();
+
+  entries.forEach((entry, commandIndex) => {
+    entry.artifacts.forEach((artifact, artifactIndex) => {
+      const location = `commands[${commandIndex}].artifacts[${artifactIndex}]`;
+      const normalized = normalizeLedgerArtifactPath(artifact, location);
+      const previous = claims.get(normalized);
+      if (previous) {
+        throw new Error(
+          `Ledger artifact at ${location} duplicates normalized path ${JSON.stringify(normalized)} already claimed at ${previous}`
+        );
+      }
+      claims.set(normalized, location);
+      ledger.set(normalized, entry);
+    });
+  });
+
+  return ledger;
+}
+
+function normalizeLedgerArtifactPath(artifact, location) {
+  if (artifact.includes("\\")) {
+    throw new Error(`Ledger artifact at ${location} must use forward slashes`);
+  }
+  if (path.posix.isAbsolute(artifact) || /^[A-Za-z]:\//.test(artifact)) {
+    throw new Error(`Ledger artifact at ${location} must be relative`);
+  }
+  if (artifact.split("/").includes("..")) {
+    throw new Error(`Ledger artifact at ${location} must not contain ".." segments`);
+  }
+  if (artifact.endsWith("/") || path.posix.normalize(artifact) === ".") {
+    throw new Error(`Ledger artifact at ${location} must identify a file`);
+  }
+
+  return path.posix.normalize(artifact);
 }
 
 function ledgerEntries(parsed) {

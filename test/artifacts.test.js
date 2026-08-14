@@ -31,6 +31,47 @@ test("accepts a top-level ledger array", () => {
   });
 });
 
+test("canonicalizes harmless relative ledger path spellings", () => {
+  withLedger([
+    { command: "npm test", artifacts: ["./reports//./summary.md"] }
+  ], (ledger) => {
+    const index = scanArtifacts("fixtures/sample-run", { ledger });
+    assert.equal(index.artifacts.find((artifact) => artifact.path === "reports/summary.md").command, "npm test");
+  });
+});
+
+test("rejects duplicate normalized artifact claims with their source indices", () => {
+  withLedger([
+    { command: "npm test", artifacts: ["reports/summary.md"] },
+    { command: "npm run check", artifacts: ["./reports/summary.md"] }
+  ], (ledger) => {
+    assert.throws(
+      () => scanArtifacts("fixtures/sample-run", { ledger }),
+      {
+        message: "Ledger artifact at commands[1].artifacts[0] duplicates normalized path \"reports/summary.md\" already claimed at commands[0].artifacts[0]"
+      }
+    );
+  });
+});
+
+for (const [artifact, reason] of [
+  ["/reports/summary.md", "must be relative"],
+  ["../reports/summary.md", 'must not contain ".." segments'],
+  ["reports/../summary.md", 'must not contain ".." segments'],
+  ["reports\\summary.md", "must use forward slashes"],
+  ["reports/", "must identify a file"],
+  ["./", "must identify a file"]
+]) {
+  test(`rejects invalid ledger artifact path ${JSON.stringify(artifact)}`, () => {
+    withLedger([{ command: "npm test", artifacts: [artifact] }], (ledger) => {
+      assert.throws(
+        () => scanArtifacts("fixtures/sample-run", { ledger }),
+        { message: `Ledger artifact at commands[0].artifacts[0] ${reason}` }
+      );
+    });
+  });
+}
+
 for (const [name, ledger, message] of [
   ["a non-array commands property", { commands: {} }, 'Ledger must be an array or an object with a "commands" array'],
   ["an unrelated object", {}, 'Ledger must be an array or an object with a "commands" array'],
