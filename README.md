@@ -48,9 +48,9 @@ The npm package intentionally ships the CLI, source modules, docs, sample fixtur
 }
 ```
 
-Ledger artifact paths are relative to the scanned root.
+Ledger artifact paths are file paths relative to the scanned root and use `/` separators. Harmless `.` segments and repeated separators are normalized to the scanner's canonical slash form, so `./reports//summary.md` joins `reports/summary.md`. Absolute paths, `..` segments, backslashes, and directory-only paths are rejected. Each normalized path may be claimed only once across the ledger; duplicate claims are reported with both command and artifact indices instead of choosing one command as provenance.
 
-The ledger must be either the object form above or the `commands` array itself. Each command entry must be an object with a non-empty string `command` and an `artifacts` array containing non-empty relative-path strings. The optional `result` must be a string. Invalid JSON or schema shapes are rejected before the scan begins.
+The ledger must be either the object form above or the `commands` array itself. Each command entry must be an object with a non-empty string `command` and an `artifacts` array containing non-empty relative file-path strings. The optional `result` must be a string. Invalid JSON, schema shapes, paths, and duplicate normalized claims are rejected before the scan begins.
 
 In Markdown output, roots, artifact paths, and ledger commands are represented as code spans with a delimiter long enough to contain any backticks in the value. Ledger results remain readable text, with Markdown-significant characters escaped and continuation lines indented under the result item. JSON output preserves the original strings without Markdown escaping.
 
