@@ -22,4 +22,4 @@ Build a local-first agent skill that indexes files produced during an agent run,
 
 - Fixture-backed tests cover classification, hidden-path handling, redaction, and ledger joins.
 - Smoke command emits a useful markdown artifact index.
-- Package can be run as a Node CLI on Node 18 or newer.
+- Package can be run as a Node CLI on Node 22 or newer.

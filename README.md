@@ -4,15 +4,17 @@
 
 ## Quickstart
 
+Node.js 22 or newer is required. CI and release checks cover Node.js 22 and 24.
+
 ```bash
-npm install
+npm ci
 npm test
 npm run smoke
 npm run release:check
 node ./bin/run-artifact-index.js fixtures/sample-run --ledger fixtures/sample-run/ledger.json --format json
 ```
 
-`npm run release:check` runs the test suite, syntax/build checks, CLI fixture smoke, and npm pack smoke. Use it before opening a release PR or publishing a package candidate.
+`npm run release:check` runs the test suite, syntax/build checks, CLI fixture smoke, and npm pack smoke. Run `npm ci` first so the committed lockfile is enforced, then use the release check before opening a release PR or publishing a package candidate.
 
 ## CLI
 
