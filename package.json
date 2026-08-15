@@ -27,7 +27,7 @@
     "url": "git+https://github.com/rogerchappel/run-artifact-index-skill.git"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "files": [
     "bin",
