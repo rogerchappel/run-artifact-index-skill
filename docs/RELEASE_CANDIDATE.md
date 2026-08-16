@@ -2,6 +2,8 @@
 
 ## Verification
 
+Use Node.js 22 or 24 and install the exact committed dependency tree with `npm ci` before running these checks.
+
 - `npm test`
 - `npm run check`
 - `npm run build`
