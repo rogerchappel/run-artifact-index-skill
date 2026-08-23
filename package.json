@@ -32,7 +32,6 @@
   "files": [
     "bin",
     "src",
-    "scripts",
     "docs",
     "fixtures",
     "SKILL.md",

@@ -6,6 +6,8 @@
 
 Node.js 22 or newer is required. CI and release checks cover Node.js 22 and 24.
 
+From a repository checkout, install the locked development environment and run the full validation suite:
+
 ```bash
 npm ci
 npm test
@@ -14,7 +16,14 @@ npm run release:check
 node ./bin/run-artifact-index.js fixtures/sample-run --ledger fixtures/sample-run/ledger.json --format json
 ```
 
-`npm run release:check` runs the test suite, syntax/build checks, CLI fixture smoke, and npm pack smoke. Run `npm ci` first so the committed lockfile is enforced, then use the release check before opening a release PR or publishing a package candidate.
+`npm ci`, `npm test`, and `npm run release:check` are checkout-only maintainer commands: the published package intentionally omits the lockfile, tests, and validation scripts. `npm run release:check` runs the repository test suite, syntax/build checks, CLI fixture smoke, and a packed-package consumer smoke before a release PR or package candidate is opened.
+
+After installing the package, consumers can run the binary directly against their own artifacts:
+
+```bash
+npm install run-artifact-index-skill
+npx run-artifact-index ./run-output --ledger ./run-output/ledger.json --format json
+```
 
 ## CLI
 
@@ -34,7 +43,7 @@ The command accepts zero or one positional `root` (default: the current director
 
 ## Package Contents
 
-The npm package intentionally ships the CLI, source modules, docs, sample fixtures, changelog, license, and skill file. The fixture files are included so consumers can run the quickstart and release smoke checks from the installed package.
+The npm package intentionally ships the CLI, source modules, docs, sample fixtures, changelog, license, and skill file. The fixtures provide examples and are exercised by the repository's package smoke after it installs the produced tarball into a disposable consumer. Repository-only tests, validation scripts, and the lockfile are not shipped, so an installed artifact cannot report a misleading zero-test release check.
 
 ## Ledger Format
 
