@@ -18,12 +18,24 @@ node ./bin/run-artifact-index.js fixtures/sample-run --ledger fixtures/sample-ru
 
 `npm ci`, `npm test`, and `npm run release:check` are checkout-only maintainer commands: the published package intentionally omits the lockfile, tests, and validation scripts. `npm run release:check` runs the repository test suite, syntax/build checks, CLI fixture smoke, and a packed-package consumer smoke before a release PR or package candidate is opened.
 
-After installing the package, consumers can run the binary directly against their own artifacts:
+No npm version has been published yet. Until the first release, build the package
+from the public source repository and install its tarball into a clean consumer:
 
 ```bash
-npm install run-artifact-index-skill
+git clone https://github.com/rogerchappel/run-artifact-index-skill.git source
+mkdir consumer
+cd source
+npm ci
+npm pack --pack-destination ../consumer
+cd ../consumer
+npm init --yes
+npm install --ignore-scripts ./run-artifact-index-skill-0.1.0.tgz
 npx run-artifact-index ./run-output --ledger ./run-output/ledger.json --format json
 ```
+
+The package smoke runs the same pack, clean-consumer install, and CLI invocation
+as part of `npm run release:check`. After an npm release exists, consumers will
+be able to replace the source-pack steps with `npm install run-artifact-index-skill`.
 
 ## CLI
 

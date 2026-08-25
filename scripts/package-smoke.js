@@ -39,8 +39,18 @@ try {
   }
 
   const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+  const readme = readFileSync("README.md", "utf8");
   if (!packageJson.repository?.url || !packageJson.bugs?.url || !packageJson.homepage) {
     throw new Error("package metadata must include repository, bugs, and homepage URLs");
+  }
+  for (const command of [
+    "npm pack --pack-destination ../consumer",
+    `npm install --ignore-scripts ./${filename}`,
+    "npx run-artifact-index ./run-output --ledger ./run-output/ledger.json --format json",
+  ]) {
+    if (!readme.includes(command)) {
+      throw new Error(`README pre-publication quickstart is missing: ${command}`);
+    }
   }
 
   const consumerDir = join(outDir, "consumer");
