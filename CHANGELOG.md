@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Replaced the unavailable npm-registry quickstart with a tested source-tarball
+  consumer install until the first package version is published.
 - Normalized safe ledger artifact path spellings and rejected invalid or duplicate provenance claims.
 - Kept Markdown output structurally valid when artifact and ledger strings contain backticks, line breaks, or Markdown punctuation.
 - Added CI coverage for the release-readiness gate.
