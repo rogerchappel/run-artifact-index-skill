@@ -4,6 +4,11 @@
 
 Use Node.js 22 or 24 and install the exact committed dependency tree with `npm ci` before running these checks.
 
+Before the first npm publication, consumer verification must use the tarball
+created by `npm pack`; do not present `npm install run-artifact-index-skill` as
+available until the registry contains the released version. The package smoke
+installs that tarball into a clean disposable consumer and exercises its CLI.
+
 - `npm test`
 - `npm run check`
 - `npm run build`
