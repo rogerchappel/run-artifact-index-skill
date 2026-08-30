@@ -59,5 +59,24 @@ function readValue(argv, index, name) {
 }
 
 function helpText() {
-  return `run-artifact-index [root] [--ledger ledger.json] [--format json|markdown]\n\nIndexes local agent-run artifacts without deleting or uploading anything.\nAccepts at most one root. Ledgers must be a command array or {"commands": [...]}.\n`;
+  return `Usage: run-artifact-index [root] [options]
+
+Indexes local agent-run artifacts without deleting or uploading anything.
+
+Arguments:
+  [root]                     Directory to scan (default: current directory)
+
+Options:
+  --ledger <ledger.json>     Join command-ledger evidence
+  --format <json|markdown>   Output format: json or markdown (default: json)
+  --output <file>            Write output to a file instead of stdout
+  --include-hidden           Include hidden files and directories
+  --category <name>          Include only artifacts in this category
+  --checksum                 Include SHA-256 checksums
+  --max-depth <integer>      Limit traversal depth (non-negative integer)
+  --exclude <pattern>        Exclude matching paths (repeatable)
+  --help, -h                 Show this help
+
+Accepts at most one root. Ledgers must be a command array or {"commands": [...]}.
+`;
 }
