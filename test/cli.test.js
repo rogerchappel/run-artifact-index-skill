@@ -32,10 +32,28 @@ test("reports extra positional roots as a CLI error", () => {
   assert.equal(result.stdout, "");
 });
 
-test("help states the root and ledger shape contracts", () => {
+test("help documents the complete supported option set", () => {
   const result = spawnSync(process.execPath, ["bin/run-artifact-index.js", "--help"], { encoding: "utf8" });
 
   assert.equal(result.status, 0);
+  for (const option of [
+    "[root]",
+    "--ledger <ledger.json>",
+    "--format <json|markdown>",
+    "--output <file>",
+    "--include-hidden",
+    "--category <name>",
+    "--checksum",
+    "--max-depth <integer>",
+    "--exclude <pattern>",
+    "--help, -h"
+  ]) {
+    assert.match(result.stdout, new RegExp(option.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(result.stdout, /default: current directory/);
+  assert.match(result.stdout, /default: json/);
+  assert.match(result.stdout, /json or markdown/);
+  assert.match(result.stdout, /repeatable/);
   assert.match(result.stdout, /Accepts at most one root/);
   assert.match(result.stdout, /Ledgers must be a command array/);
 });
