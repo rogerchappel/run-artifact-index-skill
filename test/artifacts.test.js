@@ -108,6 +108,22 @@ test("can include hidden paths explicitly", () => {
   assert.ok(hidden);
 });
 
+test("combines basename and root-relative wildcard exclusions", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "run-artifact-index-excludes-"));
+  try {
+    fs.mkdirSync(path.join(directory, "reports"));
+    fs.mkdirSync(path.join(directory, "nested", "tmp"), { recursive: true });
+    fs.writeFileSync(path.join(directory, "reports", "summary.md"), "report");
+    fs.writeFileSync(path.join(directory, "keep.md"), "keep");
+    fs.writeFileSync(path.join(directory, "nested", "tmp", "cache.json"), "cache");
+
+    const index = scanArtifacts(directory, { exclude: ["reports/*", "tmp"] });
+    assert.deepEqual(index.artifacts.map((artifact) => artifact.path), ["keep.md"]);
+  } finally {
+    fs.rmSync(directory, { recursive: true });
+  }
+});
+
 test("filters by category", () => {
   const index = scanArtifacts("fixtures/sample-run", { category: "package" });
   assert.deepEqual(index.artifacts.map((artifact) => artifact.category), ["package"]);

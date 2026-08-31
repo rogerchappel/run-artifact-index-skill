@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import { parseArgs } from "../src/cli.js";
 
@@ -31,6 +34,28 @@ test("reports extra positional roots as a CLI error", () => {
   assert.equal(result.stderr, "Expected at most one root argument\n");
   assert.equal(result.stdout, "");
 });
+
+for (const format of ["json", "markdown"]) {
+  test(`writes ${format} to nested and existing output parents without stdout`, () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "run-artifact-index-output-"));
+    try {
+      const output = format === "json"
+        ? path.join(directory, "new", "nested", "index.json")
+        : path.join(directory, "index.md");
+      const result = spawnSync(process.execPath, [
+        "bin/run-artifact-index.js", "fixtures/sample-run", "--format", format, "--output", output
+      ], { encoding: "utf8" });
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      const contents = fs.readFileSync(output, "utf8");
+      if (format === "json") assert.ok(Array.isArray(JSON.parse(contents).artifacts));
+      else assert.match(contents, /^# Run Artifact Index/m);
+    } finally {
+      fs.rmSync(directory, { recursive: true });
+    }
+  });
+}
 
 test("help documents the complete supported option set", () => {
   const result = spawnSync(process.execPath, ["bin/run-artifact-index.js", "--help"], { encoding: "utf8" });
