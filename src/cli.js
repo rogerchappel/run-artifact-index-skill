@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { scanArtifacts } from "./artifacts.js";
 import { renderJson, renderMarkdown } from "./render.js";
 
@@ -12,6 +13,7 @@ export async function runCli(argv) {
   const index = scanArtifacts(options.root, options);
   const output = options.format === "json" ? renderJson(index) : renderMarkdown(index);
   if (options.output) {
+    fs.mkdirSync(path.dirname(path.resolve(options.output)), { recursive: true });
     fs.writeFileSync(options.output, output);
     return;
   }
@@ -69,12 +71,12 @@ Arguments:
 Options:
   --ledger <ledger.json>     Join command-ledger evidence
   --format <json|markdown>   Output format: json or markdown (default: json)
-  --output <file>            Write output to a file instead of stdout
+  --output <file>            Write output to a file, creating parent directories
   --include-hidden           Include hidden files and directories
   --category <name>          Include only artifacts in this category
   --checksum                 Include SHA-256 checksums
   --max-depth <integer>      Limit traversal depth (non-negative integer)
-  --exclude <pattern>        Exclude matching paths (repeatable)
+  --exclude <pattern>        Exclude basenames or root-relative paths (repeatable; * and ? stay within a path segment)
   --help, -h                 Show this help
 
 Accepts at most one root. Ledgers must be a command array or {"commands": [...]}.

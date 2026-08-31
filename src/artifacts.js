@@ -7,7 +7,7 @@ const DEFAULT_EXCLUDES = ["node_modules", ".git", "dist", "coverage"];
 export function scanArtifacts(root, options = {}) {
   const absoluteRoot = path.resolve(root);
   const includeHidden = Boolean(options.includeHidden);
-  const excludes = new Set([...(options.exclude ?? []), ...DEFAULT_EXCLUDES]);
+  const excludes = [...(options.exclude ?? []), ...DEFAULT_EXCLUDES].map(compileExclude);
   const ledger = loadLedger(options.ledger);
   const artifacts = [];
 
@@ -29,14 +29,14 @@ export function scanArtifacts(root, options = {}) {
 
 function walk(root, current, context, depth = 0) {
   for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
-    if (shouldSkip(entry.name, context)) continue;
     const absolute = path.join(current, entry.name);
+    const relative = path.relative(root, absolute).split(path.sep).join("/");
+    if (shouldSkip(entry.name, relative, context)) continue;
     if (entry.isDirectory()) {
       if (depth < context.maxDepth) walk(root, absolute, context, depth + 1);
       continue;
     }
     if (!entry.isFile()) continue;
-    const relative = path.relative(root, absolute).split(path.sep).join("/");
     const stat = fs.statSync(absolute);
     context.artifacts.push({
       path: relative,
@@ -54,9 +54,18 @@ function maybeAddChecksum(artifact, root, options) {
   return { ...artifact, sha256 };
 }
 
-function shouldSkip(name, { includeHidden, excludes }) {
+function shouldSkip(name, relative, { includeHidden, excludes }) {
   if (!includeHidden && name.startsWith(".")) return true;
-  return excludes.has(name);
+  return excludes.some(({ pathPattern, regex }) => regex.test(pathPattern ? relative : name));
+}
+
+function compileExclude(pattern) {
+  const normalized = String(pattern).split(path.sep).join("/");
+  const expression = normalized
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replaceAll("*", "[^/]*")
+    .replaceAll("?", "[^/]");
+  return { pathPattern: normalized.includes("/"), regex: new RegExp(`^${expression}$`) };
 }
 
 export function classifyArtifact(relativePath) {
