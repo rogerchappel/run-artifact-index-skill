@@ -78,6 +78,20 @@ try {
     throw new Error("installed CLI JSON output did not join shipped ledger evidence");
   }
 
+  const nestedOutput = join(consumerDir, "generated", "nested", "index.json");
+  const fileOutput = execFileSync(installedBinary, [
+    fixtureRoot,
+    "--exclude", "reports/*",
+    "--exclude", "packages",
+    "--format", "json",
+    "--output", nestedOutput,
+  ], { cwd: consumerDir, encoding: "utf8" });
+  if (fileOutput !== "") throw new Error("installed CLI --output unexpectedly wrote to stdout");
+  const filtered = JSON.parse(readFileSync(nestedOutput, "utf8"));
+  if (filtered.artifacts.some((artifact) => artifact.path === "reports/summary.md" || artifact.path.startsWith("packages/"))) {
+    throw new Error("installed CLI did not combine wildcard and basename exclusions");
+  }
+
   const markdownOutput = execFileSync(installedBinary, [fixtureRoot, "--ledger", fixtureLedger, "--format", "markdown"], {
     cwd: consumerDir,
     encoding: "utf8",
