@@ -24,16 +24,15 @@ Use this skill when an agent run produced logs, reports, screenshots, fixtures, 
 
 ## Validation
 
-Run:
+From the installed package directory, verify the shipped CLI and fixtures by
+requesting machine-readable artifact evidence:
 
 ```bash
-npm test
-npm run smoke
-bash scripts/validate.sh
+node ./bin/run-artifact-index.js fixtures/sample-run --ledger fixtures/sample-run/ledger.json --format json
 ```
 
 ## Example
 
 ```bash
-run-artifact-index fixtures/sample-run --ledger fixtures/sample-run/ledger.json --format markdown
+node ./bin/run-artifact-index.js fixtures/sample-run --ledger fixtures/sample-run/ledger.json --format markdown
 ```
