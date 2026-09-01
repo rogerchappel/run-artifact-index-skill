@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Made shipped skill validation executable from the installed package and added
+  package-smoke enforcement for every documented Validation and Example command.
 - Replaced the unavailable npm-registry quickstart with a tested source-tarball
   consumer install until the first package version is published.
 - Normalized safe ledger artifact path spellings and rejected invalid or duplicate provenance claims.

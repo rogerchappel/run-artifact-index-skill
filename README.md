@@ -33,8 +33,10 @@ npm install --ignore-scripts ./run-artifact-index-skill-0.1.0.tgz
 npx run-artifact-index ./run-output --ledger ./run-output/ledger.json --format json
 ```
 
-The package smoke runs the same pack, clean-consumer install, and CLI invocation
-as part of `npm run release:check`. After an npm release exists, consumers will
+The package smoke runs the same pack and clean-consumer install as part of
+`npm run release:check`. It also executes every Validation and Example command
+shipped in `SKILL.md` from the installed package, and requires those commands
+to produce meaningful artifact evidence. After an npm release exists, consumers will
 be able to replace the source-pack steps with `npm install run-artifact-index-skill`.
 
 ## CLI
@@ -57,7 +59,7 @@ Repeat `--exclude` to combine exclusions. Patterns without `/` match a file or d
 
 ## Package Contents
 
-The npm package intentionally ships the CLI, source modules, docs, sample fixtures, changelog, license, and skill file. The fixtures provide examples and are exercised by the repository's package smoke after it installs the produced tarball into a disposable consumer. Repository-only tests, validation scripts, and the lockfile are not shipped, so an installed artifact cannot report a misleading zero-test release check.
+The npm package intentionally ships the CLI, source modules, docs, sample fixtures, changelog, license, and skill file. The fixtures provide examples and are exercised by the repository's package smoke after it installs the produced tarball into a disposable consumer. `SKILL.md` therefore uses the shipped CLI and fixtures for installed-package validation; `npm test`, validation scripts, and the lockfile remain checkout-only, so an installed artifact cannot report a misleading zero-test release check.
 
 ## Ledger Format
 
