@@ -66,6 +66,27 @@ try {
     throw new Error("installed package is missing its CLI link or shipped fixture ledger");
   }
 
+  const installedSkill = readFileSync(join(installedPackage, "SKILL.md"), "utf8");
+  const skillCommands = [...installedSkill.matchAll(/^## (Validation|Example)\n[\s\S]*?```bash\n([^`]+)```/gm)]
+    .flatMap(([, section, block]) => block.trim().split("\n").map((command) => ({ section, command })));
+  if (skillCommands.length !== 2 || !skillCommands.some(({ section }) => section === "Validation") || !skillCommands.some(({ section }) => section === "Example")) {
+    throw new Error("shipped SKILL.md must contain one executable Validation command and one Example command");
+  }
+  for (const { section, command } of skillCommands) {
+    if (/^npm (?:test|run)\b|scripts\//.test(command)) {
+      throw new Error(`shipped SKILL.md ${section} command depends on repository-only validation: ${command}`);
+    }
+    const output = execFileSync("sh", ["-c", command], { cwd: installedPackage, encoding: "utf8" });
+    if (section === "Validation") {
+      const validation = JSON.parse(output);
+      if (!Array.isArray(validation.artifacts) || validation.artifacts.length === 0) {
+        throw new Error("shipped SKILL.md Validation command produced no artifact evidence");
+      }
+    } else if (!output.includes("# Run Artifact Index") || !output.includes("`reports/summary.md`")) {
+      throw new Error("shipped SKILL.md Example command did not produce meaningful Markdown evidence");
+    }
+  }
+
   const jsonOutput = execFileSync(installedBinary, [fixtureRoot, "--ledger", fixtureLedger, "--format", "json"], {
     cwd: consumerDir,
     encoding: "utf8",
