@@ -55,7 +55,7 @@ run-artifact-index [root] \
 
 The command accepts zero or one positional `root` (default: the current directory), scans files under it, classifies each artifact, optionally joins command-ledger evidence, and emits JSON or markdown. Extra positional arguments are rejected instead of being treated as replacement roots.
 
-Repeat `--exclude` to combine exclusions. Patterns without `/` match a file or directory basename at any depth, so `--exclude tmp` omits every `tmp` entry. Patterns containing `/` match the complete root-relative path, so `--exclude 'reports/*'` omits files directly inside `reports`. `*` and `?` match within one path segment and never cross `/`. Quote wildcard patterns so the shell does not expand them. When `--output` names a missing directory tree, the command creates it before writing valid JSON or Markdown; output continues to go only to that file rather than stdout.
+Repeat `--exclude` to combine exclusions. Patterns without `/` match a file or directory basename at any depth, so `--exclude tmp` omits every `tmp` entry. Patterns containing `/` match the complete root-relative path, so `--exclude 'reports/*'` omits files directly inside `reports`. `*` and `?` match within one path segment and never cross `/`. Quote wildcard patterns so the shell does not expand them. When `--output` names a missing directory tree, the command creates it before writing valid JSON or Markdown; output continues to go only to that file rather than stdout. If the output file is inside the scanned root, that exact file is excluded from the scan, including when it already exists, so repeated invocations over unchanged inputs produce the same artifact paths and count. Files with the same basename elsewhere remain eligible.
 
 ## Package Contents
 

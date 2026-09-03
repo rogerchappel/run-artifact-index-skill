@@ -71,7 +71,7 @@ Arguments:
 Options:
   --ledger <ledger.json>     Join command-ledger evidence
   --format <json|markdown>   Output format: json or markdown (default: json)
-  --output <file>            Write output to a file, creating parent directories
+  --output <file>            Write output; exclude that exact file when it is inside root
   --include-hidden           Include hidden files and directories
   --category <name>          Include only artifacts in this category
   --checksum                 Include SHA-256 checksums
