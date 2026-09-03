@@ -8,10 +8,19 @@ export function scanArtifacts(root, options = {}) {
   const absoluteRoot = path.resolve(root);
   const includeHidden = Boolean(options.includeHidden);
   const excludes = [...(options.exclude ?? []), ...DEFAULT_EXCLUDES].map(compileExclude);
+  const outputPath = options.output ? path.resolve(options.output) : undefined;
+  const outputRelative = outputPath ? path.relative(absoluteRoot, outputPath) : undefined;
+  const excludedOutput = outputRelative !== undefined
+    && outputRelative !== ""
+    && outputRelative !== ".."
+    && !outputRelative.startsWith(`..${path.sep}`)
+    && !path.isAbsolute(outputRelative)
+      ? outputPath
+      : undefined;
   const ledger = loadLedger(options.ledger);
   const artifacts = [];
 
-  walk(absoluteRoot, absoluteRoot, { includeHidden, excludes, artifacts, maxDepth: options.maxDepth ?? Infinity });
+  walk(absoluteRoot, absoluteRoot, { includeHidden, excludes, excludedOutput, artifacts, maxDepth: options.maxDepth ?? Infinity });
 
   const selectedArtifacts = artifacts
       .filter((artifact) => !options.category || artifact.category === options.category)
@@ -30,6 +39,7 @@ export function scanArtifacts(root, options = {}) {
 function walk(root, current, context, depth = 0) {
   for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
     const absolute = path.join(current, entry.name);
+    if (absolute === context.excludedOutput) continue;
     const relative = path.relative(root, absolute).split(path.sep).join("/");
     if (shouldSkip(entry.name, relative, context)) continue;
     if (entry.isDirectory()) {
