@@ -201,6 +201,28 @@ test("can add sha256 checksums", () => {
   assert.match(index.artifacts[0].sha256, /^[a-f0-9]{64}$/);
 });
 
+test("indexes in-root file and directory symlinks while skipping escapes and cycles", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "run-artifact-index-links-"));
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "run-artifact-index-outside-"));
+  try {
+    fs.mkdirSync(path.join(directory, "nested"));
+    fs.writeFileSync(path.join(directory, "nested", "inside.txt"), "inside");
+    fs.writeFileSync(path.join(directory, "file-link.txt"), "linked");
+    fs.writeFileSync(path.join(outside, "outside.txt"), "outside");
+    fs.symlinkSync(path.join(directory, "file-link.txt"), path.join(directory, "linked-file.txt"));
+    fs.symlinkSync(path.join(directory, "nested"), path.join(directory, "linked-dir"));
+    fs.symlinkSync(directory, path.join(directory, "nested", "cycle"));
+    fs.symlinkSync(outside, path.join(directory, "escape"));
+    fs.symlinkSync(path.join(outside, "outside.txt"), path.join(directory, "escape-file.txt"));
+
+    const paths = scanArtifacts(directory).artifacts.map(({ path: item }) => item);
+    assert.deepEqual(paths, ["file-link.txt", "linked-dir/inside.txt", "linked-file.txt", "nested/inside.txt"]);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+    fs.rmSync(outside, { recursive: true, force: true });
+  }
+});
+
 test("honors max depth", () => {
   const index = scanArtifacts("fixtures/sample-run", { maxDepth: 0 });
   assert.equal(index.artifacts.some((artifact) => artifact.path === "reports/summary.md"), false);
