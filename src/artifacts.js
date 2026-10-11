@@ -37,17 +37,36 @@ export function scanArtifacts(root, options = {}) {
 }
 
 function walk(root, current, context, depth = 0) {
+  const realCurrent = fs.realpathSync(current);
+  context.visitedDirectories ??= new Set();
+  context.visitedDirectories.add(realCurrent);
   for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
     const absolute = path.join(current, entry.name);
     if (absolute === context.excludedOutput) continue;
     const relative = path.relative(root, absolute).split(path.sep).join("/");
     if (shouldSkip(entry.name, relative, context)) continue;
-    if (entry.isDirectory()) {
-      if (depth < context.maxDepth) walk(root, absolute, context, depth + 1);
+    let stat;
+    let target;
+    if (entry.isSymbolicLink()) {
+      try {
+        target = fs.realpathSync(absolute);
+        if (!isWithinRoot(root, target)) continue;
+        stat = fs.statSync(absolute);
+      } catch {
+        continue; // Ignore dangling or unreadable links.
+      }
+    }
+    if (entry.isDirectory() || (entry.isSymbolicLink() && stat?.isDirectory())) {
+      const realTarget = target ?? fs.realpathSync(absolute);
+      if (depth < context.maxDepth && !context.visitedDirectories.has(realTarget)) {
+        context.visitedDirectories.add(realTarget);
+        walk(root, absolute, context, depth + 1);
+        context.visitedDirectories.delete(realTarget);
+      }
       continue;
     }
-    if (!entry.isFile()) continue;
-    const stat = fs.statSync(absolute);
+    if (!(entry.isFile() || (entry.isSymbolicLink() && stat?.isFile()))) continue;
+    stat ??= fs.statSync(absolute);
     context.artifacts.push({
       path: relative,
       displayPath: redactHome(absolute),
@@ -55,6 +74,11 @@ function walk(root, current, context, depth = 0) {
       bytes: stat.size
     });
   }
+}
+
+function isWithinRoot(root, target) {
+  const relative = path.relative(fs.realpathSync(root), target);
+  return relative === "" || (relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
 }
 
 function maybeAddChecksum(artifact, root, options) {
