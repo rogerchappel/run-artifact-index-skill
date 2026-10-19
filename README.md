@@ -100,3 +100,10 @@ In Markdown output, roots, artifact paths, and ledger commands are represented a
 ## Limitations
 
 Classification is path based. Treat the output as a review aid, not a proof that a file is safe to publish.
+
+For programmatic use, `scanArtifacts(root, { rules })` accepts an ordered array of
+`{ pattern, category }` rules. Each `pattern` is a JavaScript regular-expression
+source matched against the artifact's root-relative path; the first match wins
+and overrides the built-in category. Unmatched paths use the built-in classifier.
+Rules require a non-empty pattern and category, and invalid regular expressions
+are rejected. `classifyArtifact(path, rules)` exposes the same behavior.
