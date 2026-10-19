@@ -14,6 +14,22 @@ test("classifies common artifact paths", () => {
   assert.equal(classifyArtifact("tmp/cache.json"), "disposable");
 });
 
+test("user rules override defaults in order and unmatched paths use defaults", () => {
+  assert.equal(classifyArtifact("reports/build.log", [
+    { pattern: "build\\.log$", category: "custom evidence" },
+    { pattern: "reports/", category: "custom report" }
+  ]), "custom evidence");
+  assert.equal(classifyArtifact("reports/summary.md", [{ pattern: "^logs/", category: "custom" }]), "report");
+  const index = scanArtifacts("fixtures/sample-run", { rules: [{ pattern: "summary\\.md$", category: "custom report"}] });
+  assert.equal(index.artifacts.find((artifact) => artifact.path === "reports/summary.md").category, "custom report");
+});
+
+for (const rules of [null, {}, [null], [{ pattern: "", category: "x" }], [{ pattern: "[", category: "x" }], [{ pattern: "x", category: " " }]]) {
+  test(`rejects invalid classification rules ${JSON.stringify(rules)}`, () => {
+    assert.throws(() => classifyArtifact("x", rules), /Classification rule|Classification rules/);
+  });
+}
+
 test("scans fixtures and joins command ledger", () => {
   const index = scanArtifacts("fixtures/sample-run", { ledger: "fixtures/sample-run/ledger.json" });
   const report = index.artifacts.find((artifact) => artifact.path === "reports/summary.md");
