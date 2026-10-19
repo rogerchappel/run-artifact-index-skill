@@ -20,7 +20,8 @@ export function scanArtifacts(root, options = {}) {
   const ledger = loadLedger(options.ledger);
   const artifacts = [];
 
-  walk(absoluteRoot, absoluteRoot, { includeHidden, excludes, excludedOutput, artifacts, maxDepth: options.maxDepth ?? Infinity });
+  const rules = validateClassificationRules(options.rules ?? []);
+  walk(absoluteRoot, absoluteRoot, { includeHidden, excludes, excludedOutput, artifacts, rules, maxDepth: options.maxDepth ?? Infinity });
 
   const selectedArtifacts = artifacts
       .filter((artifact) => !options.category || artifact.category === options.category)
@@ -70,7 +71,7 @@ function walk(root, current, context, depth = 0) {
     context.artifacts.push({
       path: relative,
       displayPath: redactHome(absolute),
-      category: classifyArtifact(relative),
+      category: classifyArtifact(relative, context.rules, true),
       bytes: stat.size
     });
   }
@@ -102,7 +103,11 @@ function compileExclude(pattern) {
   return { pathPattern: normalized.includes("/"), regex: new RegExp(`^${expression}$`) };
 }
 
-export function classifyArtifact(relativePath) {
+export function classifyArtifact(relativePath, rules = [], rulesValidated = false) {
+  const validatedRules = rulesValidated ? rules : validateClassificationRules(rules);
+  const matchingRule = validatedRules.find(({ pattern }) => pattern.test(relativePath));
+  if (matchingRule) return matchingRule.category;
+
   const lower = relativePath.toLowerCase();
   if (lower.includes("fixture") || lower.includes("sample")) return "fixture";
   if (lower.endsWith(".log") || lower.includes("evidence") || lower.includes("screenshot")) return "evidence";
@@ -110,6 +115,24 @@ export function classifyArtifact(relativePath) {
   if (lower.endsWith(".tgz") || lower.endsWith(".zip") || lower.includes("package")) return "package";
   if (lower.includes("tmp") || lower.includes("cache")) return "disposable";
   return "generated output";
+}
+
+function validateClassificationRules(rules) {
+  if (!Array.isArray(rules)) throw new Error("Classification rules must be an array");
+  return rules.map((rule, index) => {
+    if (!isRecord(rule)) throw new Error(`Classification rule at index ${index} must be an object`);
+    if (typeof rule.pattern !== "string" || rule.pattern.length === 0) {
+      throw new Error(`Classification rule at index ${index} must have a non-empty pattern string`);
+    }
+    if (typeof rule.category !== "string" || rule.category.trim().length === 0) {
+      throw new Error(`Classification rule at index ${index} must have a non-empty category string`);
+    }
+    let pattern;
+    try { pattern = new RegExp(rule.pattern); } catch {
+      throw new Error(`Classification rule at index ${index} has an invalid pattern`);
+    }
+    return { pattern, category: rule.category.trim() };
+  });
 }
 
 function loadLedger(ledgerPath) {
