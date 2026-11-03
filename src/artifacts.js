@@ -62,7 +62,6 @@ function walk(root, current, context, depth = 0) {
       if (depth < context.maxDepth && !context.visitedDirectories.has(realTarget)) {
         context.visitedDirectories.add(realTarget);
         walk(root, absolute, context, depth + 1);
-        context.visitedDirectories.delete(realTarget);
       }
       continue;
     }
