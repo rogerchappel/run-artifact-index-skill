@@ -32,6 +32,13 @@ try {
     throw new Error(`npm pack is missing required files: ${missing.join(", ")}`);
   }
 
+  const manifest = JSON.parse(readFileSync("package.json", "utf8"));
+  for (const [command, entryPoint] of Object.entries(manifest.bin ?? {})) {
+    if (!names.has(entryPoint.replace(/^\.\//, ""))) {
+      throw new Error(`npm pack is missing declared CLI entry point for ${command}: ${entryPoint}`);
+    }
+  }
+
   const repositoryOnly = ["package-lock.json", "scripts/validate.sh", "scripts/package-smoke.js", "test/artifacts.test.js"];
   const leaked = repositoryOnly.filter((file) => names.has(file));
   if (leaked.length > 0) {
