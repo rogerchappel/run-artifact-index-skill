@@ -94,6 +94,11 @@ try {
     }
   }
 
+  const helpOutput = execFileSync(installedBinary, ["--help"], { cwd: consumerDir, encoding: "utf8" });
+  if (!helpOutput.includes("Usage:") || !helpOutput.includes("--format")) {
+    throw new Error("installed CLI --help did not display its usage and format option");
+  }
+
   const jsonOutput = execFileSync(installedBinary, [fixtureRoot, "--ledger", fixtureLedger, "--format", "json"], {
     cwd: consumerDir,
     encoding: "utf8",
