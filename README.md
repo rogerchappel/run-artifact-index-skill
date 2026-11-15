@@ -107,3 +107,17 @@ source matched against the artifact's root-relative path; the first match wins
 and overrides the built-in category. Unmatched paths use the built-in classifier.
 Rules require a non-empty pattern and category, and invalid regular expressions
 are rejected. `classifyArtifact(path, rules)` exposes the same behavior.
+
+```js
+import { scanArtifacts } from "run-artifact-index-skill/src/artifacts.js";
+
+const index = scanArtifacts("./run-output", {
+  rules: [
+    { pattern: "^traces/.*\\.jsonl$", category: "trace" },
+    { pattern: "^reports/.*", category: "report" }
+  ]
+});
+```
+
+Rules are evaluated in order, so put more specific patterns first. Categories
+are user-defined strings; they are not restricted to the built-in category list.
