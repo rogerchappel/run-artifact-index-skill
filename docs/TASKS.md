@@ -9,4 +9,4 @@
 - [x] Add README, skill instructions, and release-candidate notes.
 - [x] Add optional checksum output.
 - [x] Add focused examples and ledger schema docs.
-- [ ] Expand classifiers with user-defined rules.
+- [x] Expand classifiers with user-defined rules (`scanArtifacts(root, { rules })`); README documents ordered custom rules and categories.
