@@ -121,3 +121,25 @@ const index = scanArtifacts("./run-output", {
 
 Rules are evaluated in order, so put more specific patterns first. Categories
 are user-defined strings; they are not restricted to the built-in category list.
+
+### Release validation checks
+
+`npm run release:check` invokes `scripts/validate.sh` with Bash strict mode
+(`set -euo pipefail`), so the first failing command stops the run with a non-zero
+exit status. It runs, in order:
+
+1. `npm test` (Node's test runner).
+2. `npm run check` (project checks).
+3. `npm run build`.
+4. The Markdown CLI smoke using `fixtures/sample-run`, captured at
+   `/tmp/run-artifact-index-smoke.md`.
+5. `npm run package:smoke` (packed-package consumer validation).
+6. A JSON CLI run for the `package` category with checksums, captured at
+   `/tmp/run-artifact-index-package.json`; validation requires that output to
+   exist and contain `"sha256"`.
+
+Only if all steps and output assertions succeed does the script print
+`validation passed`. A command failure or missing checksum evidence exits early;
+inspect the first reported failing command. The temporary files are diagnostic
+outputs in `/tmp`, not repository artifacts. The GitHub release dry-run
+workflow runs this same check; it does not publish a package or release.
