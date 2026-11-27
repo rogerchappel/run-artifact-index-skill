@@ -78,10 +78,14 @@ jobs:
             exit 0
           fi
 
-          if [ -f package-lock.json ]; then
+          if node --input-type=module -e "import pkg from './package.json' with { type: 'json' }; process.exit(Object.keys({ ...pkg.dependencies, ...pkg.devDependencies, ...pkg.optionalDependencies }).length ? 0 : 1)"; then
+            if [ ! -f package-lock.json ]; then
+              echo "Dependencies are declared but package-lock.json is missing."
+              exit 1
+            fi
             npm ci
           else
-            npm install
+            echo "No package dependencies declared; skipping installation."
           fi
 
           npm run build --if-present
